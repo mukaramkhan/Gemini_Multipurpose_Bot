@@ -1,13 +1,18 @@
 import os
-
 from PIL import Image
 import streamlit as st
 from streamlit_option_menu import option_menu
 
 from utilities import (load_gemini_pro_model,
-                            gemini_pro_response,
-                            gemini_pro_vision_response,
-                            embeddings_model_response)
+                       gemini_pro_response,
+                       gemini_pro_vision_response,
+                       embeddings_model_response)
+
+
+from pdfsearch import (get_pdf_text,
+                       get_text_chunks,
+                       get_vector_store,
+                       user_input)
 
 
 working_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,9 +27,10 @@ with st.sidebar:
     selected = option_menu('Gemini AI',
                            ['ChatBot',
                             'Image Captioning',
+                            'Search from PDF',
                             'Embed text',
                             'Ask me anything'],
-                           menu_icon='robot', icons=['chat-dots-fill', 'image-fill', 'textarea-t', 'patch-question-fill'],
+                           menu_icon='robot', icons=['chat-dots-fill', 'image-fill', 'file-earmark-pdf', 'textarea-t', 'patch-question-fill'],
                            default_index=0
                            )
 
@@ -91,6 +97,25 @@ if selected == "Image Captioning":
         with col2:
             st.info(caption)
 
+# search from PDF
+if selected == "Search from PDF":
+    st.title("Chat with PDF using Gemini💁")
+    # st.set_page_config("Chat PDF")
+    # st.header("Chat with PDF using Gemini💁")
+    pdf_docs = st.file_uploader("Upload your PDF Files and Click on the Submit & Process Button",
+                                accept_multiple_files=True)
+    if st.button("Submit & Process"):
+        with st.spinner("Processing..."):
+            raw_text = get_pdf_text(pdf_docs)
+            text_chunks = get_text_chunks(raw_text)
+            get_vector_store(text_chunks)
+            st.success("Done")
+
+    user_question = st.text_input("Ask a Question from the PDF Files")
+
+    if user_question:
+        response = user_input(user_question)
+        st.write("Reply: ", response["output_text"])
 
 # text embedding model
 if selected == "Embed text":
