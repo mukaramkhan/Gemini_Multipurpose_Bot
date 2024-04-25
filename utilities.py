@@ -17,15 +17,46 @@ GOOGLE_API_KEY = config_data["GOOGLE_API_KEY"]
 # configuring google.generativeai with API key
 genai.configure(api_key=GOOGLE_API_KEY)
 
+# Set up the model
+generation_config = {
+  "temperature": 1,
+  "top_p": 0.95,
+  "top_k": 0,
+  "max_output_tokens": 8192,
+}
+
+safety_settings = [
+  {
+    "category": "HARM_CATEGORY_HARASSMENT",
+    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+  },
+  {
+    "category": "HARM_CATEGORY_HATE_SPEECH",
+    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+  },
+  {
+    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+  },
+  {
+    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+  },
+]
+
 
 def load_gemini_pro_model():
-    gemini_pro_model = genai.GenerativeModel("gemini-pro")
+    gemini_pro_model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest",
+                              generation_config=generation_config,
+                              safety_settings=safety_settings)
     return gemini_pro_model
 
 
 # get response from Gemini-Pro-Vision model - image/text to text
 def gemini_pro_vision_response(prompt, image):
-    gemini_pro_vision_model = genai.GenerativeModel("gemini-pro-vision")
+    gemini_pro_vision_model = genai.GenerativeModel(model_name="gemini-pro-vision",
+                              generation_config=generation_config,
+                              safety_settings=safety_settings)
     response = gemini_pro_vision_model.generate_content([prompt, image])
     result = response.text
     return result
@@ -43,7 +74,9 @@ def embeddings_model_response(input_text):
 
 # get response from Gemini-Pro model - text to text
 def gemini_pro_response(user_prompt):
-    gemini_pro_model = genai.GenerativeModel("gemini-pro")
+    gemini_pro_model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest",
+                              generation_config=generation_config,
+                              safety_settings=safety_settings)
     response = gemini_pro_model.generate_content(user_prompt)
     result = response.text
     return result
